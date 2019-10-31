@@ -1,0 +1,16 @@
+---
+title: "ideas"
+author: "Bobby Tables"
+date: "10/31/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+LIST YOUR IDEAS BELOW
