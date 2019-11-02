@@ -24,7 +24,11 @@ data <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTUNGRtA21pSLd
 ```
 
 ```{r}
-data %>%
-  group_by(studio) %>%
-  count(pass)
+passdata <- data %>%
+  group_by(studio)%>%
+  count(pass) %>%
+  mutate(total = sum(n)) %>%
+  filter(pass == "TRUE") %>%
+  summarize(passprop = n/total)
 ```
+
