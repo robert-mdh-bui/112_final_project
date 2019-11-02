@@ -14,3 +14,12 @@ library(tidyverse)
 ```
 
 LIST YOUR IDEAS BELOW
+
+# Vito Russo test + "do they die?" 
+
+## 
+
+```{r}
+data <- read_csv("G:/My Drive/Macalester 2016-2020/Academics/7th Term - Fall 2019/(MATH - Lendway) Intro to Data Science/working_folder/112_final_project/112_final_project/data_small.csv")
+```
+
