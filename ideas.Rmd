@@ -32,3 +32,12 @@ passdata <- data %>%
   summarize(passprop = n/total)
 ```
 
+```{r}
+passdata %>% 
+  ggplot(aes(x = studio, y = passprop)) +
+  geom_col() +
+  coord_flip() +
+  theme_minimal() +
+  labs(x = "Studio", y = "Proportion passing the Vito Russo Test")
+```
+
