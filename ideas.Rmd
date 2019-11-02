@@ -23,3 +23,8 @@ LIST YOUR IDEAS BELOW
 data <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTUNGRtA21pSLdSM6uFhYQ5dSGt9QGOLwufShvI9Y5uxyxT4-C888AYzRzPxfjnQyLQqWzeo92SixbZ/pub?gid=1476657733&single=true&output=csv")
 ```
 
+```{r}
+data %>%
+  group_by(studio) %>%
+  count(pass)
+```
