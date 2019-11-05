@@ -1,0 +1,43 @@
+---
+title: "ideas"
+author: "Bobby Tables"
+date: "10/31/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+```
+
+LIST YOUR IDEAS BELOW
+
+# Vito Russo test + "do they die?" 
+
+## 
+
+```{r}
+data <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTUNGRtA21pSLdSM6uFhYQ5dSGt9QGOLwufShvI9Y5uxyxT4-C888AYzRzPxfjnQyLQqWzeo92SixbZ/pub?gid=1476657733&single=true&output=csv")
+```
+
+```{r}
+passdata <- data %>%
+  group_by(studio)%>%
+  count(pass) %>%
+  mutate(total = sum(n)) %>%
+  filter(pass == "TRUE") %>%
+  summarize(passprop = n/total)
+```
+
+```{r}
+passdata %>% 
+  ggplot(aes(x = fct_reorder(studio, passprop), y = passprop)) +
+  geom_col() +
+  coord_flip() +
+  theme_minimal() +
+  labs(x = "Studio", y = "Proportion passing the Vito Russo Test") 
+```
+

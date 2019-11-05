@@ -1,0 +1,2 @@
+"0","hotdogsSub <- hotdogs %>% "
+"0","    filter(country %in% c(""Japan"",""United States""))"

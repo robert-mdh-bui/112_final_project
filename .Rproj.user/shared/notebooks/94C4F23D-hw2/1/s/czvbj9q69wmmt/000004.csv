@@ -1,0 +1,4 @@
+"0",""
+"0","ggplot(hotdogsSub, mapping=aes(x=dogs_eaten, fill=country)) +"
+"0","  geom_density() +"
+"0","  facet_wrap( ~ country)"

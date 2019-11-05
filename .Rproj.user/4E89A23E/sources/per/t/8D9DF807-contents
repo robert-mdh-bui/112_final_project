@@ -1,0 +1,45 @@
+---
+title: "scratch"
+author: "Robert Duc Bui"
+date: "11/2/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+data <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTUNGRtA21pSLdSM6uFhYQ5dSGt9QGOLwufShvI9Y5uxyxT4-C888AYzRzPxfjnQyLQqWzeo92SixbZ/pub?gid=1476657733&single=true&output=csv")
+
+dt <- data 
+```
+
+```{r}
+gr <- unique(c(data$imdb_genre1,
+               data$imdb_genre2,
+               data$imdb_genre3
+               ))
+
+gr
+```
+
+```{r}
+for (i %in% gr)
+{
+  dt <- dt %>% 
+  print(i)
+    
+}
+```

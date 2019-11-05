@@ -1,0 +1,8 @@
+"0","cor(beyond1990$budget_2013, beyond1990$domgross_2013, use=""complete.obs"")"
+"1","[1]"
+"1"," 0.6417519"
+"1","
+"
+"0","ggplot(beyond1990, aes(x=budget_2013, y=domgross_2013))+"
+"0","  geom_point() +"
+"0","  geom_smooth()"

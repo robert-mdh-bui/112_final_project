@@ -1,0 +1,33 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1572724147603.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "B7D42A31",
+    "lastKnownWriteTime" : 7957695011165139568,
+    "last_content_update" : 1572724147603,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "cacheKey" : "1634A761",
+        "caption" : "passdata",
+        "contentUrl" : "grid_resource/gridviewer.html?env=&obj=passdata&cache_key=1634A761",
+        "displayedObservations" : 9,
+        "environment" : "",
+        "expression" : "passdata",
+        "object" : "passdata",
+        "preview" : 0,
+        "totalObservations" : 9,
+        "variables" : 2
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_dataframe"
+}

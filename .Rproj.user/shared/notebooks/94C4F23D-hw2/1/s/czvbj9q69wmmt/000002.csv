@@ -1,0 +1,2 @@
+"0","ggplot(hotdogsSub, mapping=aes(x=dogs_eaten, fill=country)) +"
+"0","  geom_density(alpha=0.6)"

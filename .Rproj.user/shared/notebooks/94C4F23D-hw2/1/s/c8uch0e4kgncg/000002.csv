@@ -1,0 +1,2 @@
+"0","ggplot(data=hiphop_cand_lyrics, mapping=aes(album_release_date)) +"
+"0","  geom_histogram(binwidth=1, color=""white"", fill=""steelblue1"")"

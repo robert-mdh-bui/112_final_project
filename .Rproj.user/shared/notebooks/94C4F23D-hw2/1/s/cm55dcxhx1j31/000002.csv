@@ -1,0 +1,1 @@
+"0","hotdogs <- clean_names(read_csv(""http://datasets.flowingdata.com/hot-dog-contest-winners.csv""), case=""snake"")"

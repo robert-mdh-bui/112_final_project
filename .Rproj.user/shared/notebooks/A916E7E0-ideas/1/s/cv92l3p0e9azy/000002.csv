@@ -1,0 +1,17 @@
+"0","data <- read_csv(""https://docs.google.com/spreadsheets/d/e/2PACX-1vTUNGRtA21pSLdSM6uFhYQ5dSGt9QGOLwufShvI9Y5uxyxT4-C888AYzRzPxfjnQyLQqWzeo92SixbZ/pub?gid=1476657733&single=true&output=csv"")"
+"2","Parsed with column specification:
+cols(
+  .default = col_logical(),
+  release_name = [31mcol_character()[39m,
+  release_year = [32mcol_double()[39m,
+  studio = [31mcol_character()[39m,
+  box_office_domestic = [32mcol_double()[39m,
+  box_office_intl = [32mcol_double()[39m,
+  box_office_total = [32mcol_double()[39m,
+  imdb_genre1 = [31mcol_character()[39m,
+  imdb_genre2 = [31mcol_character()[39m,
+  imdb_genre3 = [31mcol_character()[39m
+)
+"
+"2","See spec(...) for full column specifications.
+"

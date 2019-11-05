@@ -1,0 +1,3 @@
+"0","ggplot(hotdogs, mapping=aes(x=year, y=dogs_eaten)) +"
+"0","  geom_point() +"
+"0","  geom_line()"

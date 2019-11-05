@@ -1,0 +1,2 @@
+"0","ggplot(data=hiphop_cand_lyrics, mapping=aes(album_release_date)) +"
+"0","  geom_density(color=""grey"",fill=""steelblue1"", alpha=1)"

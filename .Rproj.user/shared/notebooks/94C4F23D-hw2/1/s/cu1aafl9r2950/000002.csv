@@ -1,0 +1,7 @@
+"0","newbechdel <- bechdel %>% "
+"0","  mutate(clean_test=factor(clean_test, c(""nowomen"",""notalk"",""men"",""dubious"",""ok""))) %>% "
+"0","  mutate(yearCat=cut(year, breaks=seq(1969,2014,by=5)))"
+"0",""
+"0","ggplot(newbechdel,aes(x=yearCat,fill=clean_test))+"
+"0","  geom_bar(position=""fill"") +"
+"0","  scale_fill_manual(values = c(""red"",""salmon"",""pink"",""steelblue1"",""steelblue4""))"

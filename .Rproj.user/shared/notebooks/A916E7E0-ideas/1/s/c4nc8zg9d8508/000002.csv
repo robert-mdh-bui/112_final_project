@@ -1,0 +1,6 @@
+"0","passdata <- data %>%"
+"0","  group_by(studio)%>%"
+"0","  count(pass) %>%"
+"0","  mutate(total = sum(n)) %>%"
+"0","  filter(pass == ""TRUE"") %>%"
+"0","  summarize(passprop = n/total)"
