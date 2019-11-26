@@ -1,0 +1,95 @@
+---
+title: "Untitled"
+author: "Robert Duc Bui"
+date: "11/24/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(shiny)
+library(Cairo)
+library(ggthemes)
+library(plotly)
+library(shiny)
+library(data.table)
+```
+
+```{r}
+data <- fread("data18.csv")
+```
+
+
+```{r}
+small <- data %>% 
+  filter(
+    !ORIGIN_STATE_ABR %in% c("AK","HI","PR","VI"),
+    !DEST_STATE_ABR %in% c("AK","HI","PR","VI"),
+  ) %>%
+  select(OP_UNIQUE_CARRIER,ORIGIN_AIRPORT_ID,ORIGIN_CITY_NAME,DEST_AIRPORT_ID,DEP_DELAY,DISTANCE)
+
+write.csv(small,"small.csv")
+```
+
+
+```{r}
+airports <- fread("airports.csv")
+
+left_join(data,airports)
+```
+
+```{r}
+airlines <- c("NK","F9","DL","UA","AA")
+```
+
+
+
+```{r}
+dels <- data %>% 
+      filter(
+        OP_UNIQUE_CARRIER %in% airlines
+      ) %>% 
+      filter(
+        !ORIGIN_STATE_ABR %in% c("AK","HI","PR","VI"),
+        !DEST_STATE_ABR %in% c("AK","HI","PR","VI"),
+      ) %>% 
+      group_by(OP_UNIQUE_CARRIER) %>% 
+      summarise(
+        delay = sum(DEP_DELAY, na.rm=T),
+        distance = sum(DISTANCE),
+        flights = n_distinct(V1),
+        `Average Delay` = delay / flights,
+)
+
+p1 <- dels %>% 
+  ggplot()+
+  geom_col(aes(x=OP_UNIQUE_CARRIER,y=distance, fill = OP_UNIQUE_CARRIER))+
+  coord_flip()+
+  labs(
+    x = "Carrier",
+    y = "Total Air Miles",
+    fill = "Carrier"
+  )+
+  theme(legend.position='none')
+
+p2 <- dels %>% 
+  ggplot()+
+  geom_col(aes(x=OP_UNIQUE_CARRIER,y=`Average Delay`, fill = OP_UNIQUE_CARRIER))+
+  coord_flip()+
+  labs(
+    x = "Carrier",
+    y = "Average Delay",
+    fill = "Carrier"
+  )
+
+ggplotly(p1, tooltip = "distance")
+ggplotly(p2, tooltip = "Average Delay")
+```
+
+
+
