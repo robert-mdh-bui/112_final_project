@@ -74,6 +74,7 @@ ui <- fluidPage(theme = shinytheme("united"),
       br(),
       sliderInput(inputId = "cutoff", label = h3("(MAP ONLY) Set Airport Minimum N# Flights"), min = 1, max = 7198, value = 2600, step = 1),
       em("The above slider is to eliminate smaller airports and reduce noise on map, making it more visible."),
+      checkboxInput(inputId = "linesize", label = "Draw Lines for Routes?", value = T),
       br(),
       br(),
       submitButton(text = "Generate Map and Graphs"),
@@ -165,6 +166,7 @@ server <- function(input, output) {
   output$outplot <- renderPlotly({
     cutoff <- input$cutoff
     airlines <- input$airlines
+    linesize <- as.integer(input$linesize)
 
     
     lines <- data %>% 
@@ -230,7 +232,7 @@ server <- function(input, output) {
         hoverinfo = "none",
         color = ~OP_UNIQUE_CARRIER,
         colors = cols,
-        alpha=.175, size=I(1)
+        alpha=.175, size=I(linesize)
       ) %>% 
       add_markers(
         data = lmarker, x = ~ori_lon, y = ~ori_lat, 
