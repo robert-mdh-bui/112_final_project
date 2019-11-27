@@ -8,6 +8,7 @@ library(shiny)
 library(ggplot2)
 library(plotly)
 library(data.table)
+library(fst)
 options(shiny.usecairo=T)
 options(scipen=999)
 #options(mapbox.accessToken = 'sk.eyJ1Ijoicm9iZXJ0LW1kaC1idWkiLCJhIjoiY2szZjhtOTdnMDA2ODNvbjFsN3pna3dueiJ9.ECGieXPdhDRPNPF3jEhOGw')
@@ -16,11 +17,11 @@ options(scipen=999)
 
 ## Data Import
 
-data <- fread("small.csv")
+data <- read_fst("small.fst")
 
-airports <- fread("airports.csv")
+airports <- read_fst("airports.fst")
 
-geoloc <- fread("geoloc.csv") %>% 
+geoloc <- read_fst("geoloc.fst") %>% 
   group_by(AIRPORT_ID) %>% 
   summarise(
     lat = mean(LATITUDE),
@@ -38,7 +39,7 @@ cols <- c("AA"="#36ace2",
           "OH"="brown",
           "OO"="steelblue",
           "UA"="#1530a2",
-          "WN"="orange",
+          "WN"="#f9a817",
           "YV"="#aaa9ad",
           "YX"="black")
 

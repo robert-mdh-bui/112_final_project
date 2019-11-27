@@ -19,9 +19,9 @@ options(scipen=999)
 
 data <- read_fst("fulldata-fixed.fst")
 
-airports <- fread("airports.csv")
+airports <- read_fst("airports.fst")
 
-geoloc <- fread("geoloc.csv") %>% 
+geoloc <- read_fst("geoloc.fst") %>% 
   group_by(AIRPORT_ID) %>% 
   summarise(
     lat = mean(LATITUDE),
