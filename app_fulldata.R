@@ -11,16 +11,12 @@ library(plotly)
 library(fst)
 options(shiny.usecairo=T)
 options(scipen=999)
-#options(mapbox.accessToken = 'sk.eyJ1Ijoicm9iZXJ0LW1kaC1idWkiLCJhIjoiY2szZjhtOTdnMDA2ODNvbjFsN3pna3dueiJ9.ECGieXPdhDRPNPF3jEhOGw')
-#Sys.setenv('MAPBOX_TOKEN' = 'sk.eyJ1Ijoicm9iZXJ0LW1kaC1idWkiLCJhIjoiY2szZjhtOTdnMDA2ODNvbjFsN3pna3dueiJ9.ECGieXPdhDRPNPF3jEhOGw')
-
 
 ## Data Import
 
 data <- read_fst("fulldata-fixed.fst")
 
 airport_data <- read_fst("airport_data.fst")
-
 
 cols <- c("AA"="#36ace2",
           "AS"="#488509",
@@ -37,9 +33,7 @@ cols <- c("AA"="#36ace2",
           "YV"="#aaa9ad",
           "YX"="black")
 
-
 ## Code
-
 
 ui <- fluidPage(theme = shinytheme("united"),
                 titlePanel(
