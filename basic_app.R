@@ -19,14 +19,7 @@ options(scipen=999)
 
 data <- read_fst("small.fst")
 
-airports <- read_fst("airports.fst")
-
-geoloc <- read_fst("geoloc.fst") %>% 
-  group_by(AIRPORT_ID) %>% 
-  summarise(
-    lat = mean(LATITUDE),
-    lon = mean(LONGITUDE)
-  )
+airport_data <- read_fst("airport_data.fst")
 
 cols <- c("AA"="#36ace2",
           "AS"="#488509",
@@ -42,7 +35,6 @@ cols <- c("AA"="#36ace2",
           "WN"="#f9a817",
           "YV"="#aaa9ad",
           "YX"="black")
-
 
 ## Code
 
@@ -182,19 +174,19 @@ server <- function(input, output) {
       ) %>% 
       distinct()
     
-    lines <- left_join(lines,geoloc,by = c("ORIGIN_AIRPORT_ID"="AIRPORT_ID")) %>% 
+    lines <- left_join(lines,airport_data,by = c("ORIGIN_AIRPORT_ID"="ORIGIN_AIRPORT_ID")) %>% 
       mutate(
         ori_lat = lat,
         ori_lon = lon
       ) %>% 
-      select(-c(lat,lon))
+      select(-c(lat,lon,name,ORIGIN))
     
-    lines <- left_join(lines,geoloc,by = c("DEST_AIRPORT_ID"="AIRPORT_ID")) %>% 
+    lines <- left_join(lines,airport_data,by = c("DEST_AIRPORT_ID"="ORIGIN_AIRPORT_ID")) %>% 
       mutate(
         des_lat = lat,
         des_lon = lon
       ) %>% 
-      select(-c(lat,lon))
+      select(-c(lat,lon,name,ORIGIN))
     
     lines2 <- lines %>% 
       group_by(OP_UNIQUE_CARRIER,ORIGIN_AIRPORT_ID,ORIGIN_CITY_NAME,ori_lon,ori_lat) %>% 
@@ -212,7 +204,8 @@ server <- function(input, output) {
     lmarker <- left_join(lmax,lines2,by=c("max"="m","ORIGIN_AIRPORT_ID"="ORIGIN_AIRPORT_ID")) %>% 
       distinct()
     
-    lmarker <- left_join(lmarker, airports, by=c("ORIGIN_AIRPORT_ID"="ORIGIN_AIRPORT_ID"))
+    lmarker <- left_join(lmarker, airport_data, by=c("ORIGIN_AIRPORT_ID"="ORIGIN_AIRPORT_ID")) %>% 
+      select(-c(lat,lon))
     
     geo <- list(
       scope = "usa",

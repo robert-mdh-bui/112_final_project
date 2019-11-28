@@ -18,35 +18,41 @@ library(ggthemes)
 library(plotly)
 library(shiny)
 library(data.table)
+library(fst)
 ```
 
 ```{r}
-data <- fread("data18.csv")
+data <- read_fst("fulldata-fixed.fst")
 ```
 
+```{r}
+geoloc <- read_fst("geoloc.fst") %>% 
+  group_by(AIRPORT_ID) %>% 
+  summarise(
+    lat = mean(LATITUDE),
+    lon = mean(LONGITUDE)
+  ) %>% 
+  distinct()
+
+airports <- read_fst("airports.fst")
+```
 
 ```{r}
-small <- data %>% 
+ap <- left_join(airports,geoloc, by=c("ORIGIN_AIRPORT_ID"="AIRPORT_ID")) %>%
+  select(-V1)
+```
+
+```{r}
+write_fst(ap, "airport_data.fst",100)
+```
+
+```{r}
+data_nominor <- data %>% 
   filter(
-    !ORIGIN_STATE_ABR %in% c("AK","HI","PR","VI"),
-    !DEST_STATE_ABR %in% c("AK","HI","PR","VI"),
-  ) %>%
-  select(OP_UNIQUE_CARRIER,ORIGIN_AIRPORT_ID,ORIGIN_CITY_NAME,DEST_AIRPORT_ID,DEP_DELAY,DISTANCE)
-
-write.csv(small,"small.csv")
+    ORIGIN_AIRPORT_ID %in% ap$ORIGIN_AIRPORT_ID,
+    DEST_AIRPORT_ID %in% ap$ORIGIN_AIRPORT_ID
+  )
 ```
-
-
-```{r}
-airports <- fread("airports.csv")
-
-left_join(data,airports)
-```
-
-```{r}
-airlines <- c("NK","F9","DL","UA","AA")
-```
-
 
 
 ```{r}
