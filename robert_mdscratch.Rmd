@@ -1,0 +1,175 @@
+---
+title: "robert_scratchmd"
+author: "bobbytables"
+date: "12/4/2019"
+output: html_document
+---
+
+```{r}
+rm(list=setdiff(ls(), c()))
+gc()
+
+fltr18a <- read.csv(text="ORI_ID,DES_ID")
+fltr18d <- read.csv(text="ORI_ID,DES_ID")
+data18 <- read_fst("data18-fixed.fst") %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "9E", "DL")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "VX", "AS")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "MQ", "AA")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "OH", "AA"))
+airports <- read_fst("airport_data.fst")
+cols <- c("AA"="#36ace2",
+          "AS"="#488509",
+          "B6"="#16339f",
+          "DL"="#e01e32",
+          "EV"="#27446a",
+          "F9"="#176642",
+          "G4"="#00569c",
+          "HA" = "#ca0f88",
+          "NK" = "#fcec03",
+          "OO"="steelblue",
+          "UA"="#1530a2",
+          "WN"="#f9a817",
+          "YV"="#aaa9ad",
+          "YX"="black")
+
+choice <- "HNL"
+typechoice <- "arrival"
+
+sp <- airports %>% 
+  filter(
+    ORIGIN == choice
+  )
+
+choice18 <- data18 %>% 
+  filter(
+    ORIGIN_AIRPORT_ID == sp$ORIGIN_AIRPORT_ID | DEST_AIRPORT_ID == sp$ORIGIN_AIRPORT_ID
+  ) %>% 
+  mutate(
+    type = ifelse(
+      ORIGIN_AIRPORT_ID == sp$ORIGIN_AIRPORT_ID,
+      "departure",
+      "arrival"
+    )
+  )
+
+fltr18 <- choice18 %>% 
+  filter(
+    type == typechoice
+  )
+
+if (fltr18$type[1] == "departure") {
+  fltr18d <- fltr18 %>% 
+    rename(
+      ORI_ID = ORIGIN_AIRPORT_ID,
+      DES_ID = DEST_AIRPORT_ID
+    ) %>% 
+    select(V1,FL_DATE,OP_UNIQUE_CARRIER,ORI_ID,DES_ID) %>% 
+    group_by(ORI_ID,DES_ID,OP_UNIQUE_CARRIER) %>% 
+    summarise(
+      airline_n = n_distinct(V1)
+    ) 
+} else {
+  fltr18a <- fltr18 %>% 
+    rename(
+      DES_ID = ORIGIN_AIRPORT_ID,
+      ORI_ID = DEST_AIRPORT_ID
+    ) %>% 
+    select(V1,FL_DATE,OP_UNIQUE_CARRIER,ORI_ID,DES_ID) %>% 
+    group_by(ORI_ID,DES_ID,OP_UNIQUE_CARRIER) %>% 
+    summarise(
+      airline_n = n_distinct(V1)
+    ) 
+}
+
+fltr18m <- full_join(fltr18d,fltr18a)
+
+rm(list=setdiff(ls(), c("fltr18m","airports","cols")))
+gc()
+
+fmax <- fltr18m %>% 
+  group_by(DES_ID) %>% 
+  summarise(
+    max = max(airline_n)
+  ) %>% 
+  left_join(fltr18m, by = c("DES_ID"="DES_ID","max"="airline_n")) %>% 
+  select(
+    DES_ID, OP_UNIQUE_CARRIER
+  )
+
+fltr18g <- fltr18m %>% 
+  group_by(ORI_ID,DES_ID) %>% 
+  summarise(
+    n = sum(airline_n)
+  ) %>% 
+  left_join(airports,
+            by = c("ORI_ID" = "ORIGIN_AIRPORT_ID")) %>% 
+  rename(ori_code = ORIGIN,
+         ori_lat = lat,
+         ori_lon = lon,
+         ori_name = name) %>% 
+  left_join(airports,
+            by = c("DES_ID" = "ORIGIN_AIRPORT_ID")) %>% 
+  rename(des_code = ORIGIN,
+         des_lat = lat,
+         des_lon = lon,
+         des_name = name) %>% 
+  left_join(fmax) %>% 
+  rename(
+    ori_id = ORI_ID,
+    des_id = DES_ID,
+    airline = OP_UNIQUE_CARRIER
+  )
+
+rm(list=setdiff(ls(), c("fltr18g","cols")))
+gc()
+
+geo <- list(
+      #scope = "usa",
+      projection = list(
+      type = 'orthographic',
+      rotation = list(lon = -100, lat = 40, roll = 0)
+      ),
+      showland = T,
+      landcolor = 'transparent',
+      countrycolor = 'transparent'
+    )
+    
+p <- plot_geo() %>%
+      add_segments(
+        data = fltr18g, x = ~ori_lon, xend = ~des_lon,
+        y = ~ori_lat, yend = ~des_lat,
+        hoverinfo = "none",
+        color = ~airline,
+        colors = cols,
+        alpha=.175#, size=I(linesize)
+      ) %>% 
+      add_markers(
+        data = fltr18g, x = ~des_lon, y = ~des_lat, 
+        text = ~paste("Airport:", des_code, "|",des_name, "<br>Airline with most flights:", airline), 
+        hoverinfo = "text",
+        size = ~n^2, 
+        alpha=1,
+        color = ~airline,
+        colors = cols
+      ) %>% 
+  add_markers(
+        data = fltr18g, x = ~ori_lon, y = ~ori_lat, 
+        text = ~paste(ori_code, "|", ori_name), 
+        hoverinfo = "text",
+        size = I(10),
+        symbol = I("star"),
+        color = I("red")
+      )
+
+rm(list=setdiff(ls(), c("p","geo")))
+gc()
+    
+ggplotly(p) %>% 
+      layout(
+        title = 'Where can you go from your airport, and who will take you there?',
+        geo = geo, showlegend = TRUE,
+        plot_bgcolor='transparent',
+        paper_bgcolor='transparent'
+      )
+```
+
