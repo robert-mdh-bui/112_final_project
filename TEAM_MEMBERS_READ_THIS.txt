@@ -1,0 +1,28 @@
+--------------------         IMPORTANT INFORMATION TO TEAM MEMBERS         ----------------------
+
+# PUT YOUR R-MARKDOWN FILE IN THE SAME FOLDER AS YOUR DATA18-FIXED.FST AND AIRPORT_DATA.FST FILES.
+
+# USE THE FOLLOWING STANDARD CODE CHUNK FOR READING IN DATA AND SETTING THE COLOUR PALETTE FOR AIRPORTS.
+
+```{r}
+data18 <- read_fst("data18-fixed.fst") %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "9E", "DL")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "VX", "AS")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "MQ", "AA")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "OH", "AA"))
+airports <- read_fst("airport_data.fst")
+cols <- c("AA"="#36ace2",
+          "AS"="#488509",
+          "B6"="#16339f",
+          "DL"="#e01e32",
+          "EV"="#27446a",
+          "F9"="#176642",
+          "G4"="#00569c",
+          "HA" = "#ca0f88",
+          "NK" = "#fcec03",
+          "OO"="steelblue",
+          "UA"="#1530a2",
+          "WN"="#f9a817",
+          "YV"="#aaa9ad",
+          "YX"="black")
+```
