@@ -7,9 +7,12 @@
 ```{r}
 data18 <- read_fst("data18-fixed.fst") %>% 
   mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "9E", "DL")) %>% 
+  # 9E - Endeavor Air is a subsidiary of Delta.
   mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "VX", "AS")) %>% 
+  # VX - Virgin America was acquired by Alaska Airlines in 2016, and merged in 2018.
   mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "MQ", "AA")) %>% 
   mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "OH", "AA"))
+  # MQ - Envoy Air and OH - PSA Airlines are fully owned by American Airlines.
 airports <- read_fst("airport_data.fst")
 cols <- c("AA"="#36ace2",
           "AS"="#488509",
