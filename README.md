@@ -1,6 +1,6 @@
 <p><strong>Title</strong>: COMP-112(F2019) Final Project</p>
 <p><strong>Author</strong>: Robert MD Bui, Alexander J Marketos, Zoey PA Pham, Olivia M Scott</p>
-<p><strong>License</strong>: CC BY-NC 4.0</p>
+<p><strong>License</strong>: CC0 Public Domain</p>
 <p><strong>DisplayMode</strong>: Showcase</p>
 <p><strong>Type</strong>: Shiny App, R Markdown, and Graphs</p>
 
