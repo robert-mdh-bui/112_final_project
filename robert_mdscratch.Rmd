@@ -32,8 +32,8 @@ cols <- c("AA"="#36ace2",
           "EV"="#27446a",
           "F9"="#176642",
           "G4"="#00569c",
-          "HA" = "#ca0f88",
-          "NK" = "#fcec03",
+          "HA"="#ca0f88",
+          "NK"="#fcec03",
           "OO"="steelblue",
           "UA"="#1530a2",
           "WN"="#f9a817",
@@ -44,7 +44,7 @@ cols <- c("AA"="#36ace2",
 
 ```{r}
 choice <- "MSP"
-typechoice <- "departure"
+typechoice <- "Departures"
 ```
 
 
@@ -61,8 +61,8 @@ choice18 <- data18 %>%
   mutate(
     type = ifelse(
       ORIGIN_AIRPORT_ID == sp$ORIGIN_AIRPORT_ID,
-      "departure",
-      "arrival"
+      "Departures",
+      "Arrivals"
     )
   )
 
@@ -72,35 +72,48 @@ fltr18 <- choice18 %>%
   )
 ```
 
-# Delay Info (?)
+# Causes of Delay by day of the week
 
 ```{r}
 data18
 ```
 
-
 ```{r}
 choice18 %>% 
   mutate(
-    wkday = wday(FL_DATE)
+    wkday = wday(FL_DATE,label = T)
   ) %>% 
   group_by(wkday,type) %>% 
   summarise(
     #Actual = mean(DEP_DELAY, na.rm = T),
-    Carrier = mean(CARRIER_DELAY, na.rm = T),
-    Weather = mean(WEATHER_DELAY, na.rm = T),
-    NAS = mean(NAS_DELAY, na.rm = T),
-    Security = mean(SECURITY_DELAY, na.rm = T),
-    `Late Aircraft` = mean(LATE_AIRCRAFT_DELAY, na.rm = T)
+    Carrier = sum(CARRIER_DELAY, na.rm = T),
+    Weather = sum(WEATHER_DELAY, na.rm = T),
+    NAS = sum(NAS_DELAY, na.rm = T),
+    Security = sum(SECURITY_DELAY, na.rm = T),
+    `Late Aircraft` = sum(LATE_AIRCRAFT_DELAY, na.rm = T)
+  ) %>% 
+  pivot_longer(
+    cols = -c(wkday,type),
+    names_to = "Cause",
+    values_to = "Minutes"
+  ) %>% 
+  ggplot()+
+  geom_col(aes(x=wkday,y=Minutes,fill=Cause))+
+  facet_wrap(~type)+
+  theme_minimal()+
+  scale_fill_viridis_d()+
+  labs(
+    x = "Day of the Week",
+    y = "Total Delayed Minutes"
   )
+  
 ```
+
+# Causes of Delay by Airline
 
 ```{r}
 choice18 %>% 
-  mutate(
-    wkday = wday(FL_DATE)
-  ) %>% 
-  group_by(wkday,type) %>% 
+  group_by(OP_UNIQUE_CARRIER,type) %>% 
   summarise(
     #Actual = mean(DEP_DELAY, na.rm = T),
     Carrier = mean(CARRIER_DELAY, na.rm = T),
@@ -110,13 +123,22 @@ choice18 %>%
     `Late Aircraft` = mean(LATE_AIRCRAFT_DELAY, na.rm = T)
   ) %>% 
   pivot_longer(
-    cols = -c(wkday,type),
+    cols = -c(OP_UNIQUE_CARRIER,type),
     names_to = "Cause",
     values_to = "Minutes"
-  )
+  ) %>% 
+  ggplot()+
+  geom_col(aes(x=OP_UNIQUE_CARRIER,y=Minutes,fill=Cause),position = "dodge")+
+  facet_wrap(~type)+
+  theme_minimal()+
+  scale_fill_viridis_d()+
+  labs(
+    x = "Airline",
+    y = "Average Delayed Minutes"
+  )+
+  coord_flip()
   
 ```
-
 
 # Where can you go?
 
