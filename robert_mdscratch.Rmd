@@ -6,11 +6,19 @@ output: html_document
 ---
 
 ```{r}
+library(tidyverse)
+library(tidyr)
+library(fst)
+library(plotly)
+library(lubridate)
+```
+
+
+```{r}
 rm(list=setdiff(ls(), c()))
 gc()
 
-fltr18a <- read.csv(text="ORI_ID,DES_ID")
-fltr18d <- read.csv(text="ORI_ID,DES_ID")
+
 data18 <- read_fst("data18-fixed.fst") %>% 
   mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "9E", "DL")) %>% 
   mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "VX", "AS")) %>% 
@@ -31,10 +39,16 @@ cols <- c("AA"="#36ace2",
           "WN"="#f9a817",
           "YV"="#aaa9ad",
           "YX"="black")
+```
 
-choice <- "HNL"
-typechoice <- "arrival"
 
+```{r}
+choice <- "MSP"
+typechoice <- "departure"
+```
+
+
+```{r}
 sp <- airports %>% 
   filter(
     ORIGIN == choice
@@ -56,6 +70,59 @@ fltr18 <- choice18 %>%
   filter(
     type == typechoice
   )
+```
+
+# Delay Info (?)
+
+```{r}
+data18
+```
+
+
+```{r}
+choice18 %>% 
+  mutate(
+    wkday = wday(FL_DATE)
+  ) %>% 
+  group_by(wkday,type) %>% 
+  summarise(
+    #Actual = mean(DEP_DELAY, na.rm = T),
+    Carrier = mean(CARRIER_DELAY, na.rm = T),
+    Weather = mean(WEATHER_DELAY, na.rm = T),
+    NAS = mean(NAS_DELAY, na.rm = T),
+    Security = mean(SECURITY_DELAY, na.rm = T),
+    `Late Aircraft` = mean(LATE_AIRCRAFT_DELAY, na.rm = T)
+  )
+```
+
+```{r}
+choice18 %>% 
+  mutate(
+    wkday = wday(FL_DATE)
+  ) %>% 
+  group_by(wkday,type) %>% 
+  summarise(
+    #Actual = mean(DEP_DELAY, na.rm = T),
+    Carrier = mean(CARRIER_DELAY, na.rm = T),
+    Weather = mean(WEATHER_DELAY, na.rm = T),
+    NAS = mean(NAS_DELAY, na.rm = T),
+    Security = mean(SECURITY_DELAY, na.rm = T),
+    `Late Aircraft` = mean(LATE_AIRCRAFT_DELAY, na.rm = T)
+  ) %>% 
+  pivot_longer(
+    cols = -c(wkday,type),
+    names_to = "Cause",
+    values_to = "Minutes"
+  )
+  
+```
+
+
+# Where can you go?
+
+```{r}
+fltr18a <- read.csv(text="ORI_ID,DES_ID")
+fltr18d <- read.csv(text="ORI_ID,DES_ID")
 
 if (fltr18$type[1] == "departure") {
   fltr18d <- fltr18 %>% 
