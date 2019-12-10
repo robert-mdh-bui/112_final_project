@@ -11,6 +11,7 @@ library(tidyr)
 library(fst)
 library(plotly)
 library(lubridate)
+library(ggcorrplot)
 ```
 
 
@@ -41,14 +42,126 @@ cols <- c("AA"="#36ace2",
           "YX"="black")
 ```
 
+# Correlation Matrix of Numerical Variables (not enough data to be helpful)
 
 ```{r}
-choice <- "MSP"
-typechoice <- "Departures"
+corr18 <- data18 %>% 
+  mutate(
+    DATE = as.numeric(ymd(FL_DATE) - ymd(20171231)),
+    DESTINATION_AIRPORT = DEST_AIRPORT_ID - 10000
+  ) %>% 
+  select(DATE,DESTINATION_AIRPORT,CRS_DEP_TIME,DISTANCE,AIR_TIME,DEP_DELAY) 
+
+corr <- cor(corr18,use = "complete.obs")
+pmat <- cor_pmat(corr18, use = "complete.obs")
 ```
 
 
+```{r fig.height=6, fig.width=6}
+ggcorrplot(corr, hc.order = TRUE, p.mat = pmat, lab =T)+
+    #theme_minimal()+
+    scale_fill_viridis_c()
+```
+
+
+# Causes of Delay by day of the week
+
+```{r fig.height=6, fig.width=6}
+choice18 %>% 
+  mutate(
+    wkday = wday(FL_DATE,label = T)
+  ) %>% 
+  group_by(wkday,type) %>% 
+  summarise(
+    #Actual = mean(DEP_DELAY, na.rm = T),
+    Carrier = mean(CARRIER_DELAY, na.rm = T),
+    Weather = mean(WEATHER_DELAY, na.rm = T),
+    NAS = mean(NAS_DELAY, na.rm = T),
+    `Late Aircraft` = mean(LATE_AIRCRAFT_DELAY, na.rm = T),
+    Security = mean(SECURITY_DELAY, na.rm = T)
+  ) %>% 
+  pivot_longer(
+    cols = -c(wkday,type),
+    names_to = "Cause",
+    values_to = "Minutes"
+  ) %>% 
+  ggplot()+
+  geom_col(aes(x=wkday,y=Minutes,fill=Cause), position="stack")+
+  theme_minimal()+
+  scale_fill_viridis_d()+
+  labs(
+    x = "Day of the Week",
+    y = "Average Delayed Minutes (NA Removed)"
+  )+
+  facet_grid(Cause ~ type)+
+  coord_flip()
+
+```
+
+# Causes of Delay by Airline
+
+```{r fig.height=6, fig.width=6}
+choice18 %>% 
+  group_by(OP_UNIQUE_CARRIER,type) %>% 
+  summarise(
+    Carrier = mean(CARRIER_DELAY, na.rm = T),
+    `Late Aircraft` = mean(LATE_AIRCRAFT_DELAY, na.rm = T)
+  ) %>% 
+  pivot_longer(
+    cols = -c(OP_UNIQUE_CARRIER,type),
+    names_to = "Cause",
+    values_to = "Minutes"
+  ) %>% 
+  ggplot()+
+  geom_col(aes(x=OP_UNIQUE_CARRIER,y=Minutes,fill=OP_UNIQUE_CARRIER))+
+  theme_minimal()+
+  scale_fill_manual(values = cols)+
+  labs(
+    x = "Airline",
+    y = "Average Delayed Minutes (NA Removed)"
+  )+  
+  facet_grid(type ~ Cause) +coord_flip()
+
+  
+```
+
+# Where can you go?
+
 ```{r}
+library(tidyverse)
+library(tidyr)
+library(fst)
+library(plotly)
+library(lubridate)
+
+rm(list=setdiff(ls(), c()))
+gc()
+
+
+data18 <- read_fst("data18-fixed.fst") %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "9E", "DL")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "VX", "AS")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "MQ", "AA")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "OH", "AA"))
+airports <- read_fst("airport_data.fst")
+cols <- c("AA"="#36ace2",
+          "AS"="#488509",
+          "B6"="#16339f",
+          "DL"="#e01e32",
+          "EV"="#27446a",
+          "F9"="#176642",
+          "G4"="#00569c",
+          "HA"="#ca0f88",
+          "NK"="#fcec03",
+          "OO"="steelblue",
+          "UA"="#1530a2",
+          "WN"="#f9a817",
+          "YV"="#aaa9ad",
+          "YX"="black")
+
+choice <- "MSP"
+typechoice <- "Departures"
+
 sp <- airports %>% 
   filter(
     ORIGIN == choice
@@ -70,83 +183,11 @@ fltr18 <- choice18 %>%
   filter(
     type == typechoice
   )
-```
 
-# Causes of Delay by day of the week
-
-```{r}
-data18
-```
-
-```{r}
-choice18 %>% 
-  mutate(
-    wkday = wday(FL_DATE,label = T)
-  ) %>% 
-  group_by(wkday,type) %>% 
-  summarise(
-    #Actual = mean(DEP_DELAY, na.rm = T),
-    Carrier = sum(CARRIER_DELAY, na.rm = T),
-    Weather = sum(WEATHER_DELAY, na.rm = T),
-    NAS = sum(NAS_DELAY, na.rm = T),
-    Security = sum(SECURITY_DELAY, na.rm = T),
-    `Late Aircraft` = sum(LATE_AIRCRAFT_DELAY, na.rm = T)
-  ) %>% 
-  pivot_longer(
-    cols = -c(wkday,type),
-    names_to = "Cause",
-    values_to = "Minutes"
-  ) %>% 
-  ggplot()+
-  geom_col(aes(x=wkday,y=Minutes,fill=Cause))+
-  facet_wrap(~type)+
-  theme_minimal()+
-  scale_fill_viridis_d()+
-  labs(
-    x = "Day of the Week",
-    y = "Total Delayed Minutes"
-  )
-  
-```
-
-# Causes of Delay by Airline
-
-```{r}
-choice18 %>% 
-  group_by(OP_UNIQUE_CARRIER,type) %>% 
-  summarise(
-    #Actual = mean(DEP_DELAY, na.rm = T),
-    Carrier = mean(CARRIER_DELAY, na.rm = T),
-    Weather = mean(WEATHER_DELAY, na.rm = T),
-    NAS = mean(NAS_DELAY, na.rm = T),
-    Security = mean(SECURITY_DELAY, na.rm = T),
-    `Late Aircraft` = mean(LATE_AIRCRAFT_DELAY, na.rm = T)
-  ) %>% 
-  pivot_longer(
-    cols = -c(OP_UNIQUE_CARRIER,type),
-    names_to = "Cause",
-    values_to = "Minutes"
-  ) %>% 
-  ggplot()+
-  geom_col(aes(x=OP_UNIQUE_CARRIER,y=Minutes,fill=Cause),position = "dodge")+
-  facet_wrap(~type)+
-  theme_minimal()+
-  scale_fill_viridis_d()+
-  labs(
-    x = "Airline",
-    y = "Average Delayed Minutes"
-  )+
-  coord_flip()
-  
-```
-
-# Where can you go?
-
-```{r}
 fltr18a <- read.csv(text="ORI_ID,DES_ID")
 fltr18d <- read.csv(text="ORI_ID,DES_ID")
 
-if (fltr18$type[1] == "departure") {
+if (fltr18$type[1] == "Departures") {
   fltr18d <- fltr18 %>% 
     rename(
       ORI_ID = ORIGIN_AIRPORT_ID,
@@ -255,7 +296,7 @@ gc()
     
 ggplotly(p) %>% 
       layout(
-        title = 'Where can you go from your airport, and who will take you there?',
+        title = 'How connected is your airport, and which carriers?',
         geo = geo, showlegend = TRUE,
         plot_bgcolor='transparent',
         paper_bgcolor='transparent'
