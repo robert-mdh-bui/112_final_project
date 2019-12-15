@@ -12,6 +12,9 @@ library(fst)
 library(plotly)
 library(lubridate)
 library(ggcorrplot)
+library(zoo)
+library(ggstance)
+library(gganimate)
 ```
 
 
@@ -24,22 +27,38 @@ data18 <- read_fst("data18-fixed.fst") %>%
   mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "9E", "DL")) %>% 
   mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "VX", "AS")) %>% 
   mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "MQ", "AA")) %>% 
-  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "OH", "AA"))
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "OH", "AA")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "AA", "AA - American Airlines")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "AS", "AA - Alaska Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "B6", "B6 - JetBlue Airways")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "DL", "DL - Delta Air Lines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "EV", "EV - ExpressJet Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "F9", "F9 - Frontier Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "G4", "G4 - Allegiant Air")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "HA", "HA - Hawaii Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "NK", "NK - Spirit Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "OO", "OO - SkyWest Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "UA", "UA - United Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "WN", "WN - Southwest Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "YV", "YV - Mesa Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "YX", "YX - Republic Airways"))
+
 airports <- read_fst("airport_data.fst")
-cols <- c("AA"="#36ace2",
-          "AS"="#488509",
-          "B6"="#16339f",
-          "DL"="#e01e32",
-          "EV"="#27446a",
-          "F9"="#176642",
-          "G4"="#00569c",
-          "HA"="#ca0f88",
-          "NK"="#fcec03",
-          "OO"="steelblue",
-          "UA"="#1530a2",
-          "WN"="#f9a817",
-          "YV"="#aaa9ad",
-          "YX"="black")
+
+cols <- c("AA - American Airlines"="#36ace2",
+          "AA - Alaska Airlines"="#488509",
+          "B6 - JetBlue Airways"="#16339f",
+          "DL - Delta Air Lines"="#e01e32",
+          "EV - ExpressJet Airlines"="#27446a",
+          "F9 - Frontier Airlines"="#176642",
+          "G4 - Allegiant Air"="#00569c",
+          "HA - Hawaii Airlines"="#ca0f88",
+          "NK - Spirit Airlines"="#fcec03",
+          "OO - SkyWest Airlines"="steelblue",
+          "UA - United Airlines"="#1530a2",
+          "WN - Southwest Airlines"="#f9a817",
+          "YV - Mesa Airlines"="#aaa9ad",
+          "YX - Republic Airways"="black")
 ```
 
 # Correlation Matrix of Numerical Variables (not enough data to be helpful)
@@ -302,4 +321,83 @@ ggplotly(p) %>%
         paper_bgcolor='transparent'
       )
 ```
+
+```{r}
+data18
+```
+
+# Animated Bar Chart of Adjusted Delay Minutes
+
+```{r}
+sorted <- data18 %>% 
+  group_by(FL_DATE,OP_UNIQUE_CARRIER) %>% 
+  summarise(
+    n0=mean(DEP_DELAY,na.rm=T)
+  ) %>% 
+  group_by(OP_UNIQUE_CARRIER) %>% 
+  mutate(
+    cumsum=cumsum(n0)
+  ) %>% 
+  select(
+    date=FL_DATE,
+    carrier=OP_UNIQUE_CARRIER,
+    cumsum=cumsum
+  )
+
+carriers <- unique(sorted$carrier)  # vector of all carriers
+dates <- unique(sorted$date)  # vector of all dates
+
+cts <- data.frame(carrier=carriers, date=as.Date("2017-12-31"),cumsum=as.integer(0)) 
+# adding baseline of 0
+
+sorted2 <- sorted %>% 
+  expand(carrier,date=dates)
+
+sorted3 <- left_join(sorted2,sorted)
+
+sorted4 <- bind_rows(sorted3, cts) %>% # adding 1899 baseline to sorted df
+  arrange(carrier,date) %>% 
+  na.locf()
+
+sorted5 <- sorted4 %>% 
+  group_by(date) %>% 
+  mutate(rank=rank(-cumsum,ties.method="first")) %>% 
+  group_by(carrier) %>% 
+  ungroup()
+
+options(digits=2)
+
+statplot <- sorted5 %>% 
+  ggplot(aes(x= cumsum, y=rank,color=as.factor(carrier)))+
+  geom_barh(stat = "identity", aes(fill=carrier))+   
+  geom_text(aes(x=0,color=carrier, label = paste(carrier, " ")),vjust=0.2,hjust=1) +
+  geom_text(aes(x=cumsum,label=paste("", trunc(cumsum))),vjust=.5,hjust = 0)+
+  scale_y_reverse()+
+  coord_cartesian(clip="off",expand=F)+ # disallows clipping of the axes
+  guides(color = F, fill = F) +
+  scale_fill_manual(values = cols)+
+  scale_color_manual(values = cols)+
+  theme_minimal()+
+  theme(legend.position = "none",
+        plot.margin = unit(c(1,1,1,4), "cm"),
+        axis.ticks.y = element_blank(),
+        axis.text.y  = element_blank())
+
+p <- statplot +
+  transition_states(states = date,transition_length = 6, state_length = 4)+
+  view_follow(fixed_y=T)+
+  ease_aes('quadratic-in-out')+
+  enter_drift(x_mod = -1) + exit_drift(x_mod = 1) +
+  labs(title = "Race to the bottom: Airline delay minutes",
+       x="Accumulated delay minutes, adjusted for number of flights",
+       y="",
+       caption='{closest_state}')
+
+animate(p,
+        nframes = length(unique(sorted5$date))*2,
+        fps=24, 
+        width=900, 
+        height=800)
+```
+
 
