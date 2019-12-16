@@ -1,0 +1,62 @@
+---
+title: "final_rmd"
+author: "Robert Duc Bui"
+date: "12/16/2019"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(tidyr)
+library(fst)
+library(plotly)
+library(lubridate)
+library(ggcorrplot)
+library(zoo)
+library(ggstance)
+library(gganimate)
+```
+
+
+```{r}
+rm(list=setdiff(ls(), c()))
+gc()
+
+
+data18 <- read_fst("data18-fixed.fst") %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "9E", "DL")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "VX", "AS")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "MQ", "AA")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "OH", "AA")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "AA", "AA - American Airlines")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "AS", "AA - Alaska Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "B6", "B6 - JetBlue Airways")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "DL", "DL - Delta Air Lines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "EV", "EV - ExpressJet Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "F9", "F9 - Frontier Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "G4", "G4 - Allegiant Air")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "HA", "HA - Hawaii Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "NK", "NK - Spirit Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "OO", "OO - SkyWest Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "UA", "UA - United Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "WN", "WN - Southwest Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "YV", "YV - Mesa Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "YX", "YX - Republic Airways"))
+
+airports <- read_fst("airport_data.fst")
+
+cols <- c("AA - American Airlines"="#36ace2",
+          "AA - Alaska Airlines"="#488509",
+          "B6 - JetBlue Airways"="#16339f",
+          "DL - Delta Air Lines"="#e01e32",
+          "EV - ExpressJet Airlines"="#27446a",
+          "F9 - Frontier Airlines"="#176642",
+          "G4 - Allegiant Air"="#00569c",
+          "HA - Hawaii Airlines"="#ca0f88",
+          "NK - Spirit Airlines"="#fcec03",
+          "OO - SkyWest Airlines"="steelblue",
+          "UA - United Airlines"="#1530a2",
+          "WN - Southwest Airlines"="#f9a817",
+          "YV - Mesa Airlines"="#aaa9ad",
+          "YX - Republic Airways"="black")
+```
