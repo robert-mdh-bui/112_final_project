@@ -1,0 +1,110 @@
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(shiny)
+library(Cairo)
+library(ggthemes)
+library(plotly)
+library(shiny)
+library(data.table)
+library(fst)
+library(dplyr)
+library(scales)
+```
+
+
+```{r}
+data18 <- read_fst("C:/Users/lennp/Downloads/DATA SCIENCE/finalproj112/fulldata-fixed.fst") %>%   
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "9E", "DL")) %>% 
+  # 9E - Endeavor Air is a subsidiary of Delta.
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "VX", "AS")) %>% 
+  # VX - Virgin America was acquired by Alaska Airlines in 2016, and merged in 2018.
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "MQ", "AA")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "OH", "AA"))
+  # MQ - Envoy Air and OH - PSA Airlines are fully owned by American Airlines.
+airports <- read_fst("C:/Users/lennp/Downloads/DATA SCIENCE/finalproj112/airport_data.fst")
+cols <- c("AA"="#36ace2",
+          "AS"="#488509",
+          "B6"="#16339f",
+          "DL"="#e01e32",
+          "EV"="#27446a",
+          "F9"="#176642",
+          "MQ"="darkorchid",
+          "G4"="#00569c",
+          "HA" = "#ca0f88",
+          "NK" = "#fcec03",
+          "OO"="steelblue",
+          "UA"="#1530a2",
+          "WN"="#f9a817",
+          "YV"="#aaa9ad",
+          "YX"="black")
+```
+
+#Which airlines have the most early departures?
+
+```{r}
+data18 %>% 
+  
+  filter(DEP_DELAY <= 0) %>% 
+  group_by(OP_UNIQUE_CARRIER) %>% 
+  count() %>% 
+  
+  ggplot(aes(x= reorder(OP_UNIQUE_CARRIER, -n),n, y= n, fill = OP_UNIQUE_CARRIER)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "Airline", y= "Number of delays") +
+  scale_y_continuous(labels = comma) +
+  theme_minimal()+
+  scale_fill_manual(values = c("#36ace2",
+          "#488509",
+          "#16339f",
+          "#e01e32",
+         "#27446a",
+         "#176642",
+          "#00569c",
+          "#ca0f88",
+          "#fcec03",
+          "steelblue",
+          "#1530a2",
+          "#f9a817",
+          "#aaa9ad",
+          "black",
+         "darkorchid"
+        ))
+  
+```
+#Which airports have the most early departures?
+
+```{r}
+data18 %>% 
+  
+  filter(DEP_DELAY <= 0) %>% 
+  group_by(ORIGIN_AIRPORT_ID) %>% 
+  count() %>% 
+  arrange(desc(n)) %>% 
+  semi_join(airports, by=c("ORIGIN_AIRPORT_ID" = "ORIGIN_AIRPORT_ID")) %>% 
+  select(-ORIGIN) 
+  
+```
+
+#Which airports have the highest delays?
+
+```{r}
+data18 %>% 
+  
+   
+  group_by(ORIGIN_AIRPORT_ID) %>% 
+  mutate(n = n()) %>%
+ 
+  mutate(depdelay = DEP_DELAY >= 0) %>% 
+  mutate(prop = sum(depdelay, na.rm = TRUE) / n())%>% 
+  
+  
+  arrange(desc(prop)) %>% 
+  
+  full_join(airports, by=c("ORIGIN_AIRPORT_ID" = "ORIGIN_AIRPORT_ID")) %>% 
+  
+  select(name, prop, n) %>% 
+  distinct() 
+  
+```
