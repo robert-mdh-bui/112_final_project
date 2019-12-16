@@ -1,0 +1,136 @@
+---
+title: "Graphs"
+author: "Alex Marketos"
+date: "12/16/2019"
+output: html_document
+---
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(lubridate)
+library(skimr) 
+library(naniar)
+library(maps) 
+library(ggmap)
+library(gplots) 
+library(RColorBrewer) 
+library(sf) 
+library(leaflet) 
+library(carData)
+library(fst)
+library(plotly)
+```
+
+```{r}
+fixedflights <- read_fst("/Users/alexmarketos/Desktop/data18-fixed.fst")
+```
+
+```{r}
+fixedflightsdays <- fixedflights %>%
+  separate(FL_DATE, into = c("year", "month", "day"), sep = "-") 
+```
+
+```{r}
+fixedflightsdays %>%
+  group_by(month) %>%
+  summarize(avgdelay = mean(DEP_DELAY, na.rm=T)) %>%
+  ggplot(aes(x=month, y=avgdelay)) + 
+  geom_point() 
+```
+
+```{r}
+fixedflights %>%
+  group_by(FL_DATE) %>%
+  summarize(avgdelay = mean(DEP_DELAY, na.rm=T)) %>%
+  ggplot(aes(x=FL_DATE, y=avgdelay)) + 
+  geom_point() +
+  geom_smooth()
+```
+
+```{r}
+Holidays <- read_csv("http://www.macalester.edu/~dshuman1/data/112/US-Holidays.csv") %>%
+  mutate(date = dmy(date))
+
+Holidays$date <- as.Date(Holidays$date) 
+    
+FlightsHolidays <- Holidays %>%
+  mutate(is_holiday = date %in% Holidays$date) %>%
+  right_join(fixedflights, by = c("date" = "FL_DATE"))
+  
+FlightsHolidays %>%
+  group_by(date) %>%
+  mutate(avgdelay = mean(DEP_DELAY, na.rm=T)) %>%
+  ggplot(aes(x=date, y=avgdelay)) + 
+  geom_point(aes(color = is_holiday))
+
+#ggplotly(FlightsHolidaysplotly)
+```
+
+```{r}
+fixedflights2 <- fixedflights %>%
+  replace_na(list(CARRIER_DELAY = 0, WEATHER_DELAY = 0, NAS_DELAY = 0, SECURITY_DELAY = 0, LATE_AIRCRAFT_DELAY = 0)) %>%
+   separate(FL_DATE, into = c("year", "month", "day"), sep = "-") 
+```
+
+```{r}
+fixedflights2 %>%
+  group_by(month, day, ORIGIN_CITY_NAME, DEST_CITY_NAME, OP_UNIQUE_CARRIER) %>%
+  summarize(avgdelay = mean(DEP_DELAY)) %>%
+  replace_na(list(avgdelay = 0))
+```
+
+```{r}
+fixedflights %>%
+  filter(ORIGIN_CITY_NAME == "Minneapolis, MN") %>%
+  group_by(FL_DATE) %>%
+  summarize(avgdelay = mean(DEP_DELAY, na.rm=T)) %>%
+  ggplot(aes(x=FL_DATE, y=avgdelay)) + 
+  geom_point() +
+  geom_smooth()
+```
+
+```{r}
+fixedflightsMN <- fixedflights2 %>%
+  filter(ORIGIN_CITY_NAME == "Minneapolis, MN") %>%
+  group_by(month, day) %>%
+  summarize(avgdelay = mean(DEP_DELAY, na.rm=T))
+```
+
+```{r}
+airportdelays <- fixedflights %>%
+  group_by(ORIGIN_CITY_NAME) %>%
+  summarize(avgdelay = mean(DEP_DELAY, na.rm=T))
+```
+
+```{r}
+airportdelaysname <- fixedflights %>%
+  group_by(ORIGIN_AIRPORT_ID) %>%
+  summarise(avgdelay = mean(DEP_DELAY, na.rm=T))
+```
+
+```{r}
+airportdelaysfull <- airportdelays %>%
+  inner_join(airportdelaysname, by = "avgdelay")
+```
+
+```{r}
+airportdelaycoords <- airportdelaysfull %>%
+  inner_join(airportgeo, by=c("ORIGIN_AIRPORT_ID" = "AIRPORT_ID"))
+```
+
+```{r}
+usa <- get_stamenmap(
+    bbox = c(left = -125, bottom = 25, right = -65, top = 50), 
+    maptype = "terrain",
+    zoom = 5)
+```
+
+```{r}
+airportdelaymap <- ggmap(usa) +
+  geom_point(data=airportdelaycoords, 
+             aes(x=LONGITUDE,y=LATITUDE,color=avgdelay, text=ORIGIN_CITY_NAME),
+             alpha=.7, size = .5,) +
+  labs(x="Longitude",y="Latitude")
+
+ggplotly(airportdelaymap)
+```
