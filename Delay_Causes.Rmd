@@ -1,0 +1,104 @@
+---
+title: "Delay Causes"
+author: "Liv Scott"
+date: "11/23/2019"
+output: html_document
+---
+```{r, message=FALSE, error=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(fst)
+library(dplyr)
+```
+
+```{r, message=FALSE, error=FALSE}
+Flights2018 <- read_fst("C:/Users/Olivia/Desktop/Comp112!!/Git_final_proj/data18.fst")
+```
+
+```{r}
+Delay2018 <- Flights2018 %>% 
+  select(FL_DATE, 
+         OP_UNIQUE_CARRIER, 
+         ORIGIN_AIRPORT_ID, 
+         ORIGIN_STATE_ABR, 
+         DEP_DELAY, DISTANCE, 
+         CARRIER_DELAY, 
+         WEATHER_DELAY, 
+         NAS_DELAY, 
+         SECURITY_DELAY, 
+         LATE_AIRCRAFT_DELAY
+  ) %>% 
+  filter(DEP_DELAY >= 1) %>% 
+  replace_na(list(CARRIER_DELAY = 0, WEATHER_DELAY = 0, NAS_DELAY = 0, SECURITY_DELAY = 0, LATE_AIRCRAFT_DELAY = 0))
+```
+
+```{r}
+Flights2018 %>% 
+  summarize(Total_Delay = sum(DEP_DELAY, na.rm = TRUE))
+```
+
+
+```{r}
+Delay2018 %>% 
+  summarize(Delay_Delay = sum(DEP_DELAY, na.rm = TRUE))
+```
+
+```{r}
+Basics <- tibble(
+  Delay = c("Delay", "Delay"),
+  Type = c("Overall", "When_Delayed"),
+  Minutes = c(70748229, 93665548)
+)
+
+Basics %>%
+  ggplot(aes(x = Delay, y = Minutes, fill = Type)) +
+  geom_bar(stat="identity", position = "dodge")+
+  scale_fill_viridis_d()+
+  theme_minimal()+
+  labs(x = "Causes of Delay", y = "Proportion of Total Deelay", title = "Cause of Delay in Minnesota versus the United States")
+
+```
+
+
+```{r}
+Prop_Delay2018 <- Delay2018 %>% 
+  mutate(Prop_Late_Aircraft = (sum(LATE_AIRCRAFT_DELAY))/(sum(DEP_DELAY))) %>%
+  mutate(Prop_Carrier = (sum(CARRIER_DELAY))/(sum(DEP_DELAY))) %>%
+  mutate(Prop_NAS = (sum(NAS_DELAY))/(sum(DEP_DELAY))) %>%
+  mutate(Prop_Weather = (sum(WEATHER_DELAY))/(sum(DEP_DELAY))) %>%
+  mutate(Prop_Security = (sum(SECURITY_DELAY))/(sum(DEP_DELAY)))
+  
+Prop5<- Prop_Delay2018 %>%  
+  select(starts_with("Prop")) %>% 
+  pivot_longer(cols = starts_with("Prop"), names_to = "Cause", values_to = "Proportion") %>% 
+  head(5)
+```
+
+```{r}
+MN_Prop_Delay2018 <- Delay2018 %>% 
+  filter(ORIGIN_STATE_ABR == "MN") %>% 
+  mutate(Prop_Late_Aircraft = (sum(LATE_AIRCRAFT_DELAY))/(sum(DEP_DELAY))) %>%
+  mutate(Prop_Carrier = (sum(CARRIER_DELAY))/(sum(DEP_DELAY))) %>%
+  mutate(Prop_NAS = (sum(NAS_DELAY))/(sum(DEP_DELAY))) %>%
+  mutate(Prop_Weather = (sum(WEATHER_DELAY))/(sum(DEP_DELAY))) %>%
+  mutate(Prop_Security = (sum(SECURITY_DELAY))/(sum(DEP_DELAY)))
+  
+MNProp5<- MN_Prop_Delay2018 %>%  
+  select(starts_with("Prop")) %>% 
+  pivot_longer(cols = starts_with("Prop"), names_to = "Cause", values_to = "Proportion") %>% 
+  head(5)
+```
+
+```{r, include = FALSE}
+Delay_Cause_Proportions <- tibble(
+  Delay_Cause = c("Carrier", "Carrier", "Late_Aircraft", "Late_Aircraft", "NAS", "NAS","Security","Security", "Weather", "Weather"),
+  Location = c("US", "MN","US", "MN","US", "MN","US", "MN","US", "MN"),
+  Proportion = c(0.280696452, 0.2978381078,0.370349213,  0.2717890005,0.180063432,0.2272410889, 0.001350881, 0.0008780598,0.052455338, 0.1132118506))
+
+Delay_Cause_Proportions %>%
+  ggplot(aes(x = Delay_Cause, y = Proportion, fill = Location)) +
+  geom_bar(stat="identity", position = "dodge")+
+  scale_fill_viridis_d()+
+  theme_minimal()+
+  labs(x = "Causes of Delay", y = "Proportion of Total Deelay", title = "Cause of Delay in Minnesota versus the United States")
+```
