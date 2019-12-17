@@ -4,7 +4,7 @@ library(babynames)
 library(fst)
 library(readxl)
 
-delaytable <- read_excel("/Users/alexmarketos/Desktop/Delay_table.xlsx")
+delaytable <- read_excel("/Users/alexmarketos/Desktop/Introduction to Data Science/112_final_project2/Delay_table.xlsx")
 
 ui <- fluidPage(
   selectInput("month", "Month", choices = list(January = "1", February = "2",
