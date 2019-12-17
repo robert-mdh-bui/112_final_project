@@ -84,11 +84,11 @@ cols <- c("AA - American Airlines"="#36ace2",
 
 Everyone hates it when their flight is delayed, right?
 
-What better way to be emotionally prepared to handle delays, than to be informed about them?
+What better way to be emotionally prepared to handle delays, than to be informed about them? We have created some plots and apps to help with this.
 
-[Our research question]
+We wanted to see how flight delays are affected by several variables including: airport, airline, and day of the week. 
 
-[How we gathered the data]
+To collect our data, we found a dataset at the website for the Bureau of Transportation Statistics. Our main challenge was the large size of the data set, as it included every flight in the United States over 2018. Because the file was so large, turning our dataset into an fst file made the set much smaller and did not take as long to load into RStudio. The dates of each flight in were also in one variable (month-day-year), so we had to separate them into month, day, and year. 
 
 # Part 2: Causes of Delay
 
@@ -355,4 +355,4 @@ animate(p,
 
 ### Flights may be delayed more over different days of the year and times of day
 
-### Link to [Shiny App 2](PLACEHOLDER.LINK.HERE)
+### Link to [Shiny App 2](https://alex-marketos.shinyapps.io/Delay_Time_App/)
