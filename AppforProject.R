@@ -7,6 +7,7 @@ fixedflights <- read_fst("/Users/alexmarketos/Desktop/data18-fixed.fst")
 
 fixedflightsdays <- fixedflights %>%
   separate(FL_DATE, into = c("year", "month", "day"), sep = "-") %>%
+  filter(ORIGIN_CITY_NAME == "Minneapolis, MN") %>%
   group_by(month, day) %>%
   summarize(avgdelay = mean(DEP_DELAY, na.rm=T)) %>%
   ungroup()
