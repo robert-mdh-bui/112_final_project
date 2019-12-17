@@ -82,13 +82,15 @@ cols <- c("AA - American Airlines"="#36ace2",
 
 # Part 1: Getting to know our project
 
-Everyone hates it when their flight is delayed, right?
+Everyone hates it when their flight is delayed, right? What better way to be emotionally prepared to handle delays, than to be informed about them? 
 
-What better way to be emotionally prepared to handle delays, than to be informed about them? We have created some plots and apps to help with this.
+In order to learn more about what causes flight delays, we wanted to look into the relationships between variables like geographic location, time, and airline. From there, our goal was to create some fun and useful graphs and tools to help understand why delays happen.
 
-We wanted to see how flight delays are affected by several variables including: airport, airline, and day of the week. 
+To collect our data, we found a dataset at the website for the Bureau of Transportation Statistics. This dataset included every flight departing from within the U.S. or U.S. territories for a broad range of years. This proved challenging due to the large size of the dataset. We then decided to limit our scope to only 2018. Because the file was still so large, turning our dataset into a .fst file made the set much smaller and, therefore did not take as long to load into RStudio. 
 
-To collect our data, we found a dataset at the website for the Bureau of Transportation Statistics. Our main challenge was the large size of the data set, as it included every flight in the United States over 2018. Because the file was so large, turning our dataset into an fst file made the set much smaller and did not take as long to load into RStudio. The dates of each flight in were also in one variable (month-day-year), so we had to separate them into month, day, and year. 
+In our final dataset, we included variables like the flight number, airline, location of origin, departure time and date, departure delay, distance, and  the cause of relay. The dates variable presented another challenge in that the dates of each flight in were also in one variable (month-day-year), with different formatting in different parts of the data set, so we had to separate them into month, day, and year.
+
+In order to acheive our goal of understanding the causes of flight delay, this report will walk you through the basic lengths and causes of delays, compare delay over time, across geographic regions, and by different airline carriers. We'll also include tools which are relevent for us here in Minnesota.
 
 # Part 2: Causes of Delay
 
@@ -130,6 +132,8 @@ Delay_Cause_Proportions %>%
   theme_minimal()+
   labs(x = "Causes of Delay", y = "Proportion of Total Delay", title = "Cause of Delay in Minnesota versus the United States")
 ```
+
+This graph shows how the Minnesota-St. Paul airport (MSP) compares to the country as a whole in terms of average delay time per delay variable. Interestingly, MSP has less average delay time due to a late aircraft arrival than the rest of the country. However, as might be expected, MSP has a higher average delay due to weather, possibly because of increased snowfall in the winter months compared to the country as a whole. 
 
 ### Average delay by day of the week, and by cause, at MSP
 
@@ -183,6 +187,8 @@ choice18 %>%
   coord_flip()
 
 ```
+
+From this graph, it can be determined that the top 3 reasons for a delay at MSP are: carrier delay, late aircraft arrival, and NAS. There appears to be slightly higher delay times on the weekends than during the middle of the week across the 3 variables. 
 
 # Part 3: Location, Location, Location
 
@@ -241,6 +247,7 @@ ggplotly(p1) %>%
       )
 ```
 
+According to this graph, the airports with the highest average delay time are on the East Coast. This finding might be explained by the higher amount of airports in that region of the country compared to any other. This causes the airports to be located closer to each other. As airspace is limited on the East Coast, the NAS controls how many airplane are in the sky and when. This can cause more delays on this side of the country than any other. On this map, looking at airports in places further from the East Coast (in Alaska, for example), the average delay time is less because the airports are farther from each other. 
 
 # Part 4: Airline
 
@@ -269,7 +276,7 @@ data18 %>%
 
 ### Backup Link to [Shiny App](https://robert-mdh-bui.shinyapps.io/112_final_project/)
 
-Note that Security-caused delays are virtually insignificant, so here they have been removed.
+This app can be used by fliers to determine average delay time per airline. Users can compare different airlines based on their average delay time. Using the app, it is found that Frontier Airlines has the longest average delay time and Delta Airlines has the shortest average delay time. Note that Security-caused delays are virtually insignificant, so here they have been removed.
 
 ```{r fig.height=6, fig.width=12, message=FALSE, warning=FALSE}
 data18 %>% 
@@ -298,6 +305,8 @@ data18 %>%
 
   
 ```
+
+These graphs show the average delay time per airline per delay variable (except the security delay). These graphs provide a little more insight with this added dimension of delay type. For example, although Frontier Airlines has the highest average flight delay out of all the airlines, in terms of carrier-caused delay, Hawaii Airlines has the highest average delay time. Also, in terms of NAS-caused delay, Spirit Airlines has the highest average delay time, while Frontier Airlines has one of the lowest. So, in order to get a more accurate understanding of average delay times, fliers might want to pay more attention to delay type than airline. 
 
 ### Here's another way to choose an airline, if you want to avoid getting delayed
 
@@ -375,6 +384,8 @@ animate(p,
 
 ![](animbar_preview.gif)
 
+This animation shows average delay time per airline per day of the year. Some airlines move up and down in ranking in terms of average delay time. It appears as though Frontier Airlines and JetBlue alternate in terms of having the highest average delay times of all U.S.-based airlines. Again, time of the year also plays an important role in determining average delay time, aside from jsut looking at the airlines themselves.
+
 # Part 5: Times & Dates
 
 ### Flights may be delayed more over different days of the year and times of day
@@ -401,7 +412,23 @@ p12 <- data18 %>%
 ggplotly(p12, tooltip = "text")
 ```
 
+This graph shows the average delay time for U.S. flights per day of the year. It appears as though the highest length of delays occur at the beginning, middle, and end of the year, which corresponds to the middle of winter and summer. The lowest length of delays occur in spring and fall. A few reasons could possibly explain why the delays increase in the summer. Summer heat can make it harder for planes to fly, which can actually cause airlines to delay or cancel flights until the weather is more conducive for flight (Allan, 2017). Also, more people travel in the summer, which can lead to more late aircraft arrivals, as it takes more time to load people onto a flight, espeically if people arrive late to a flight (Allan, 2017).
 
 <iframe src ="https://alex-marketos.shinyapps.io/Delay_Time_App/" height=1000px width=1000px />
 
 ### Backup link to [Shiny App 2](https://alex-marketos.shinyapps.io/Delay_Time_App/)
+
+This app can be used by Minnesota fliers to determine their average delay time. Users input the month and day that they want to travel and their average delay time will be shown. It is important to note that this app, like the rest of the data in this project, uses only data from 2018. Data from prior years can give more precise readings. Also, the app does not account for other variables like destination airport or airline. 
+
+# Conclusions
+
+Through analyzing the relationship between flight delays and various other factors, we came across a few useful recommendations. First, from analyzing the causes of delay, we see that late aircrafts are the most common cause, while security delays are quite rare. We've seen that flying out from the East Coast area can be highly delayed compared to less airport-dense regions, like Alaska and Hawaii. In terms of airlines, we learned that Delta is usually a star, whereas Frontier might need to work on its time-management skills. Finally, we recommend that flying in June-August might not be the best idea if you really dislike flight delays.
+
+Moving forward from our findings, it could be interesting compare these factors over a longer time scale, to see if patterns would emerge showing differences in cause of delays. It could also be illuminating to see the relationship between departure delay, and the actual arrival delay, to see under what circumstances planes are able to make up for lost time in the air. Finally, with a broader time scale, it could be very useful to develop and an App where users could put in all the information about their flight day, time, carrier, and location, and recieve an estimate of their delay based on previous years.
+
+Overall, in this investigation, we learned some interesting insights about what factors do and don't relate to flight delays. As annoying as flight delays can be, now that we know what to expect we can be better prepared for whatever is to come!
+
+# References
+
+
+Allan, Patrick. “Why There Are So Many Flight Delays in the Summertime.” *Lifehacker*, Lifehacker, 28 June 2017, lifehacker.com/why-there-are-so-many-flight-delays-in-the-summertime-1796465726
