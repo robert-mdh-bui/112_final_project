@@ -1,11 +1,13 @@
 ---
-title: "final_rmd"
-author: "Robert Duc Bui"
+title: "Final Project Report (COMP112-F2019)"
+author: "Robert M.D. Bui, Alexander J. Marketos, Zoey P.A. Pham, Liv M. Scott"
 date: "12/16/2019"
-output: html_document
+output:
+  html_document:
+    code_folding: "hide"
 ---
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE}
 library(tidyverse)
 library(tidyr)
 library(fst)
@@ -30,10 +32,8 @@ library(plotly)
 ```
 
 
-```{r echo=FALSE}
+```{r warning=FALSE, message=FALSE}
 rm(list=setdiff(ls(), c()))
-gc()
-
 
 data18 <- read_fst("data18-fixed.fst") %>% 
   mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "9E", "DL")) %>% 
@@ -78,7 +78,7 @@ cols <- c("AA - American Airlines"="#36ace2",
 
 ### A comprehensive guide to everything you need to know about escaping this frozen tundra for warmer weather
 
-### Created for your convenience and pleasure by: Alex Marketos, Zoey Pham, Robert Bui, and Liv Scott
+### Created for your convenience and pleasure by: Robert M.D. Bui, Alexander J. Marketos, Zoey P.A. Pham, Liv M. Scott
 
 # Part 1: Getting to know our project
 
@@ -94,7 +94,7 @@ To collect our data, we found a dataset at the website for the Bureau of Transpo
 
 ## How bad are delays, really?
 
-```{r, echo=FALSE, message=FALSE}
+```{r warning=FALSE, message=FALSE}
 Basics <- tibble(
   Delay = c("Delay", "Delay"),
   Type = c("Overall", "When_Delayed"),
@@ -117,7 +117,7 @@ Basics %>%
 ### - Security delay
 ### - Weather delay
 
-```{r, echo=FALSE}
+```{r warning=FALSE, message=FALSE}
 Delay_Cause_Proportions <- tibble(
   Delay_Cause = c("Carrier", "Carrier", "Late_Aircraft", "Late_Aircraft", "NAS", "NAS","Security","Security", "Weather", "Weather"),
   Location = c("U.S.", "MN","U.S.", "MN","U.S.", "MN","U.S.", "MN","U.S.", "MN"),
@@ -133,7 +133,7 @@ Delay_Cause_Proportions %>%
 
 ### Average delay by day of the week, and by cause, at MSP
 
-```{r fig.height=6, fig.width=6}
+```{r fig.height=6, fig.width=6, message=FALSE, warning=FALSE}
 choice <- "MSP"
 
 sp <- airports %>% 
@@ -188,14 +188,21 @@ choice18 %>%
 
 ### Which airports have the worst delays?
 
-```{r echo=FALSE}
+```{r warning=FALSE, message=FALSE}
 airportdelays <- data18 %>%
   group_by(ORIGIN_CITY_NAME) %>%
-  summarize(avgdelay = mean(DEP_DELAY, na.rm=T))
+  summarize(
+    avgdelay = mean(DEP_DELAY, na.rm=T),
+    number = n()
+  ) %>% 
+  filter(number>=1000)
 
 airportdelaysname <- data18 %>%
   group_by(ORIGIN_AIRPORT_ID) %>%
-  summarise(avgdelay = mean(DEP_DELAY, na.rm=T))
+  summarise(
+    avgdelay = mean(DEP_DELAY, na.rm=T),
+    number = n()
+  ) %>% filter(number>=1000)
 
 airportdelaysfull <- airportdelays %>%
   inner_join(airportdelaysname, by = "avgdelay")
@@ -203,28 +210,43 @@ airportdelaysfull <- airportdelays %>%
 airportdelaycoords <- airportdelaysfull %>%
   inner_join(airports)
 
-usa <- get_stamenmap(
-    bbox = c(left = -125, bottom = 25, right = -65, top = 50), 
-    maptype = "terrain",
-    zoom = 5)
+geo <- list(
+      #scope = "usa",
+      projection = list(
+       type = 'orthographic',
+       rotation = list(lon = -100, lat = 40, roll = 0)
+      ),
+      showland = T,
+      landcolor = 'transparent',
+      countrycolor = 'transparent'
+    )
+    
+p1 <- plot_geo() %>%
+      add_markers(
+        data = airportdelaycoords, x = ~lon, y = ~lat, 
+        text = ~paste("City:", ORIGIN_CITY_NAME, " | ",
+                      "Average Delay:", avgdelay), 
+        hoverinfo = "text",
+        size = ~(avgdelay^3), 
+        alpha=.99,
+        color = ~avgdelay
+      )
 
-airportdelaymap <- ggmap(usa) +
-  geom_point(data=airportdelaycoords, 
-             aes(x=lon,y=lat,color=avgdelay, text=ORIGIN_CITY_NAME),
-             alpha=.7, size = .5,) +
-  labs(x="Longitude",y="Latitude")
+ggplotly(p1) %>% 
+      layout(
+        title = 'Which airports have the worst delays? (Minor Airports Filtered)',
+        geo = geo, showlegend = TRUE,
+        plot_bgcolor='transparent',
+        paper_bgcolor='transparent'
+      )
 ```
 
-
-```{r}
-ggplotly(airportdelaymap)
-```
 
 # Part 4: Airline
 
 ### Looking on the bright side, which airlines are best for getting you out of here early?
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 data18 %>% 
   
   filter(DEP_DELAY <= 0) %>% 
@@ -234,7 +256,7 @@ data18 %>%
   ggplot(aes(x= reorder(OP_UNIQUE_CARRIER, -n),n, y= n, fill = OP_UNIQUE_CARRIER)) +
   geom_col() +
   coord_flip() +
-  labs(x = "Airline", y= "Number of early departures") +
+  labs(fill="Airline",x = "Airline", y= "Number of early departures") +
   scale_y_continuous() +
   theme_minimal()+
   scale_fill_manual(values = cols)
@@ -243,11 +265,13 @@ data18 %>%
 
 ### In contrast, which airlines have the worst delays?
 
-### Link to [Shiny App](https://robert-mdh-bui.shinyapps.io/112_final_project/)
+<iframe src ="https://robert-mdh-bui.shinyapps.io/112_final_project/" height=1000px width=1000px />
+
+### Backup Link to [Shiny App](https://robert-mdh-bui.shinyapps.io/112_final_project/)
 
 Note that Security-caused delays are virtually insignificant, so here they have been removed.
 
-```{r echo=FALSE, fig.height=6, fig.width=12}
+```{r fig.height=6, fig.width=12, message=FALSE, warning=FALSE}
 data18 %>% 
   group_by(OP_UNIQUE_CARRIER) %>% 
   summarise(
@@ -277,7 +301,7 @@ data18 %>%
 
 ### Here's another way to choose an airline, if you want to avoid getting delayed
 
-```{r eval=FALSE, echo=FALSE, message=FALSE, warning=FALSE, results=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, results=FALSE}
 sorted <- data18 %>% 
   group_by(FL_DATE,OP_UNIQUE_CARRIER) %>% 
   summarise(
@@ -355,4 +379,29 @@ animate(p,
 
 ### Flights may be delayed more over different days of the year and times of day
 
-### Link to [Shiny App 2](https://alex-marketos.shinyapps.io/Delay_Time_App/)
+```{r fig.height=6, fig.width=12, message=FALSE, warning=FALSE}
+p12 <- data18 %>% 
+  group_by(FL_DATE) %>% 
+  summarise(
+    `Average Delay` = mean(DEP_DELAY,na.rm=T)
+  ) %>% 
+  ggplot(
+    aes(text=paste("Day:",FL_DATE," | Average Delay:",`Average Delay`))
+  )+
+  geom_bar(
+    stat="identity",
+    aes(x=FL_DATE,y=`Average Delay`,fill=`Average Delay`)
+  )+
+    scale_fill_viridis_c()+
+    labs(
+      x = "Date",
+      y = "Average Delay"
+    )
+ 
+ggplotly(p12, tooltip = "text")
+```
+
+
+<iframe src ="https://alex-marketos.shinyapps.io/Delay_Time_App/" height=1000px width=1000px />
+
+### Backup link to [Shiny App 2](https://alex-marketos.shinyapps.io/Delay_Time_App/)
