@@ -131,6 +131,8 @@ Delay_Cause_Proportions %>%
   labs(x = "Causes of Delay", y = "Proportion of Total Delay", title = "Cause of Delay in Minnesota versus the United States")
 ```
 
+### Average delay by day of the week, and by cause, at MSP
+
 ```{r fig.height=6, fig.width=6}
 choice <- "MSP"
 
@@ -184,6 +186,8 @@ choice18 %>%
 
 # Part 3: Location, Location, Location
 
+### Which airports have the worst delays?
+
 ```{r echo=FALSE}
 airportdelays <- data18 %>%
   group_by(ORIGIN_CITY_NAME) %>%
@@ -218,8 +222,28 @@ ggplotly(airportdelaymap)
 
 # Part 4: Airline
 
-### Link to [Shiny App](https://robert-mdh-bui.shinyapps.io/112_final_project/)
+### Looking on the bright side, which airlines are best for getting you out of here early?
 
+```{r}
+data18 %>% 
+  
+  filter(DEP_DELAY <= 0) %>% 
+  group_by(OP_UNIQUE_CARRIER) %>% 
+  count() %>% 
+  
+  ggplot(aes(x= reorder(OP_UNIQUE_CARRIER, -n),n, y= n, fill = OP_UNIQUE_CARRIER)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "Airline", y= "Number of early departures") +
+  scale_y_continuous() +
+  theme_minimal()+
+  scale_fill_manual(values = cols)
+  
+```
+
+### In contrast, which airlines have the worst delays?
+
+### Link to [Shiny App](https://robert-mdh-bui.shinyapps.io/112_final_project/)
 
 Note that Security-caused delays are virtually insignificant, so here they have been removed.
 
@@ -250,6 +274,8 @@ data18 %>%
 
   
 ```
+
+### Here's another way to choose an airline, if you want to avoid getting delayed
 
 ```{r eval=FALSE, echo=FALSE, message=FALSE, warning=FALSE, results=FALSE}
 sorted <- data18 %>% 
@@ -325,25 +351,8 @@ animate(p,
 
 ![](animbar_preview.gif)
 
-Zoey's code: 
-```{r}
-data18 %>% 
-  
-  filter(DEP_DELAY <= 0) %>% 
-  group_by(OP_UNIQUE_CARRIER) %>% 
-  count() %>% 
-  
-  ggplot(aes(x= reorder(OP_UNIQUE_CARRIER, -n),n, y= n, fill = OP_UNIQUE_CARRIER)) +
-  geom_col() +
-  coord_flip() +
-  labs(x = "Airline", y= "Number of delays") +
-  scale_y_continuous() +
-  theme_minimal()+
-  scale_fill_manual(values = cols)
-  
-```
-
-
 # Part 5: Times & Dates
+
+### Flights may be delayed more over different days of the year and times of day
 
 ### Link to [Shiny App 2](PLACEHOLDER.LINK.HERE)
