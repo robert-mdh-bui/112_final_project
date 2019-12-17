@@ -1,0 +1,349 @@
+---
+title: "final_rmd"
+author: "Robert Duc Bui"
+date: "12/16/2019"
+output: html_document
+---
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(tidyr)
+library(fst)
+library(plotly)
+library(lubridate)
+library(ggcorrplot)
+library(zoo)
+library(ggstance)
+library(gganimate)
+library(tidyverse)
+library(skimr) 
+library(naniar)
+library(maps) 
+library(ggmap)
+library(gplots) 
+library(RColorBrewer) 
+library(sf) 
+library(leaflet) 
+library(carData)
+library(fst)
+library(plotly)
+```
+
+
+```{r echo=FALSE}
+rm(list=setdiff(ls(), c()))
+gc()
+
+
+data18 <- read_fst("data18-fixed.fst") %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "9E", "DL")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "VX", "AS")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "MQ", "AA")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "OH", "AA")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "AA", "AA - American Airlines")) %>% 
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "AS", "AA - Alaska Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "B6", "B6 - JetBlue Airways")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "DL", "DL - Delta Air Lines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "EV", "EV - ExpressJet Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "F9", "F9 - Frontier Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "G4", "G4 - Allegiant Air")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "HA", "HA - Hawaii Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "NK", "NK - Spirit Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "OO", "OO - SkyWest Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "UA", "UA - United Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "WN", "WN - Southwest Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "YV", "YV - Mesa Airlines")) %>%
+  mutate(OP_UNIQUE_CARRIER = replace(OP_UNIQUE_CARRIER, OP_UNIQUE_CARRIER == "YX", "YX - Republic Airways"))
+
+airports <- read_fst("airport_data.fst")
+
+cols <- c("AA - American Airlines"="#36ace2",
+          "AA - Alaska Airlines"="#488509",
+          "B6 - JetBlue Airways"="#16339f",
+          "DL - Delta Air Lines"="#e01e32",
+          "EV - ExpressJet Airlines"="#27446a",
+          "F9 - Frontier Airlines"="#176642",
+          "G4 - Allegiant Air"="#00569c",
+          "HA - Hawaii Airlines"="#ca0f88",
+          "NK - Spirit Airlines"="#fcec03",
+          "OO - SkyWest Airlines"="steelblue",
+          "UA - United Airlines"="#1530a2",
+          "WN - Southwest Airlines"="#f9a817",
+          "YV - Mesa Airlines"="#aaa9ad",
+          "YX - Republic Airways"="black")
+```
+
+
+# What's the deal with flight delays?
+
+### A comprehensive guide to everything you need to know about escaping this frozen tundra for warmer weather
+
+### Created for your convenience and pleasure by: Alex Marketos, Zoey Pham, Robert Bui, and Liv Scott
+
+# Part 1: Getting to know our project
+
+Everyone hates it when their flight is delayed, right?
+
+What better way to be emotionally prepared to handle delays, than to be informed about them?
+
+[Our research question]
+
+[How we gathered the data]
+
+# Part 2: Causes of Delay
+
+## How bad are delays, really?
+
+```{r, echo=FALSE, message=FALSE}
+Basics <- tibble(
+  Delay = c("Delay", "Delay"),
+  Type = c("Overall", "When_Delayed"),
+  Minutes = c(9.969858, 38.24306)
+)
+
+Basics %>%
+  ggplot(aes(x = Delay, y = Minutes, fill = Type)) +
+  geom_bar(stat="identity", position = "dodge")+
+  scale_fill_viridis_d()+
+  theme_minimal()+
+  labs(x = "Overal versus when delayed", y = "Delay in Minutes", title = "Average Delay")
+
+```
+
+### Important Variables: 
+### - Carrier delay
+### - Late Aircraft delay
+### - NAS delay
+### - Security delay
+### - Weather delay
+
+```{r, echo=FALSE}
+Delay_Cause_Proportions <- tibble(
+  Delay_Cause = c("Carrier", "Carrier", "Late_Aircraft", "Late_Aircraft", "NAS", "NAS","Security","Security", "Weather", "Weather"),
+  Location = c("U.S.", "MN","U.S.", "MN","U.S.", "MN","U.S.", "MN","U.S.", "MN"),
+  Proportion = c(0.280696452, 0.2978381078,0.370349213,  0.2717890005,0.180063432,0.2272410889, 0.001350881, 0.0008780598,0.052455338, 0.1132118506))
+
+Delay_Cause_Proportions %>%
+  ggplot(aes(x = Delay_Cause, y = Proportion, fill = Location)) +
+  geom_bar(stat="identity", position = "dodge")+
+  scale_fill_viridis_d()+
+  theme_minimal()+
+  labs(x = "Causes of Delay", y = "Proportion of Total Delay", title = "Cause of Delay in Minnesota versus the United States")
+```
+
+```{r fig.height=6, fig.width=6}
+choice <- "MSP"
+
+sp <- airports %>% 
+  filter(
+    ORIGIN == choice
+  )
+
+choice18 <- data18 %>% 
+  filter(
+    ORIGIN_AIRPORT_ID == sp$ORIGIN_AIRPORT_ID | DEST_AIRPORT_ID == sp$ORIGIN_AIRPORT_ID
+  ) %>% 
+  mutate(
+    type = ifelse(
+      ORIGIN_AIRPORT_ID == sp$ORIGIN_AIRPORT_ID,
+      "Departures",
+      "Arrivals"
+    )
+  )
+
+choice18 %>% 
+  mutate(
+    wkday = wday(FL_DATE,label = T)
+  ) %>% 
+  group_by(wkday,type) %>% 
+  summarise(
+    #Actual = mean(DEP_DELAY, na.rm = T),
+    Carrier = mean(CARRIER_DELAY, na.rm = T),
+    Weather = mean(WEATHER_DELAY, na.rm = T),
+    NAS = mean(NAS_DELAY, na.rm = T),
+    `Late Aircraft` = mean(LATE_AIRCRAFT_DELAY, na.rm = T),
+    Security = mean(SECURITY_DELAY, na.rm = T)
+  ) %>% 
+  pivot_longer(
+    cols = -c(wkday,type),
+    names_to = "Cause",
+    values_to = "Minutes"
+  ) %>% 
+  ggplot()+
+  geom_col(aes(x=wkday,y=Minutes,fill=Cause), position="stack")+
+  theme_minimal()+
+  scale_fill_viridis_d()+
+  labs(
+    x = "Day of the Week",
+    y = "Average Delayed Minutes for MSP (NA Removed)"
+  )+
+  facet_grid(Cause ~ type)+
+  coord_flip()
+
+```
+
+# Part 3: Location, Location, Location
+
+```{r echo=FALSE}
+airportdelays <- data18 %>%
+  group_by(ORIGIN_CITY_NAME) %>%
+  summarize(avgdelay = mean(DEP_DELAY, na.rm=T))
+
+airportdelaysname <- data18 %>%
+  group_by(ORIGIN_AIRPORT_ID) %>%
+  summarise(avgdelay = mean(DEP_DELAY, na.rm=T))
+
+airportdelaysfull <- airportdelays %>%
+  inner_join(airportdelaysname, by = "avgdelay")
+
+airportdelaycoords <- airportdelaysfull %>%
+  inner_join(airports)
+
+usa <- get_stamenmap(
+    bbox = c(left = -125, bottom = 25, right = -65, top = 50), 
+    maptype = "terrain",
+    zoom = 5)
+
+airportdelaymap <- ggmap(usa) +
+  geom_point(data=airportdelaycoords, 
+             aes(x=lon,y=lat,color=avgdelay, text=ORIGIN_CITY_NAME),
+             alpha=.7, size = .5,) +
+  labs(x="Longitude",y="Latitude")
+```
+
+
+```{r}
+ggplotly(airportdelaymap)
+```
+
+# Part 4: Airline
+
+### Link to [Shiny App](https://robert-mdh-bui.shinyapps.io/112_final_project/)
+
+
+Note that Security-caused delays are virtually insignificant, so here they have been removed.
+
+```{r echo=FALSE, fig.height=6, fig.width=12}
+data18 %>% 
+  group_by(OP_UNIQUE_CARRIER) %>% 
+  summarise(
+    Carrier = mean(CARRIER_DELAY, na.rm = T),
+    Weather = mean(WEATHER_DELAY, na.rm = T),
+    NAS = mean(NAS_DELAY, na.rm = T),
+    `Late Aircraft` = mean(LATE_AIRCRAFT_DELAY, na.rm = T)
+  ) %>% 
+  pivot_longer(
+    cols = -c(OP_UNIQUE_CARRIER),
+    names_to = "Cause",
+    values_to = "Minutes"
+  ) %>% 
+  ggplot()+
+  geom_col(aes(x=OP_UNIQUE_CARRIER,y=Minutes,fill=OP_UNIQUE_CARRIER))+
+  theme_minimal()+
+  scale_fill_manual(values = cols)+
+  labs(
+    fill = "Airline",
+    x = "Airline",
+    y = "Average Delayed Minutes (NA Removed)"
+  )+  
+  facet_grid(~Cause) +coord_flip()
+
+  
+```
+
+```{r eval=FALSE, echo=FALSE, message=FALSE, warning=FALSE, results=FALSE}
+sorted <- data18 %>% 
+  group_by(FL_DATE,OP_UNIQUE_CARRIER) %>% 
+  summarise(
+    n0=mean(DEP_DELAY,na.rm=T)
+  ) %>% 
+  group_by(OP_UNIQUE_CARRIER) %>% 
+  mutate(
+    cumsum=cumsum(n0)
+  ) %>% 
+  select(
+    date=FL_DATE,
+    carrier=OP_UNIQUE_CARRIER,
+    cumsum=cumsum
+  )
+
+carriers <- unique(sorted$carrier)  # vector of all carriers
+dates <- unique(sorted$date)  # vector of all dates
+
+cts <- data.frame(carrier=carriers, date=as.Date("2017-12-31"),cumsum=as.integer(0)) 
+# adding baseline of 0
+
+sorted2 <- sorted %>% 
+  expand(carrier,date=dates)
+
+sorted3 <- left_join(sorted2,sorted)
+
+sorted4 <- bind_rows(sorted3, cts) %>% # adding 1899 baseline to sorted df
+  arrange(carrier,date) %>% 
+  na.locf()
+
+sorted5 <- sorted4 %>% 
+  group_by(date) %>% 
+  mutate(rank=rank(-cumsum,ties.method="first")) %>% 
+  group_by(carrier) %>% 
+  ungroup()
+
+options(digits=2)
+
+statplot <- sorted5 %>% 
+  ggplot(aes(x= cumsum, y=rank,color=as.factor(carrier)))+
+  geom_barh(stat = "identity", aes(fill=carrier))+   
+  geom_text(aes(x=0,color=carrier, label = paste(carrier, " ")),vjust=0.2,hjust=1) +
+  geom_text(aes(x=cumsum,label=paste("", trunc(cumsum))),vjust=.5,hjust = 0)+
+  scale_y_reverse()+
+  coord_cartesian(clip="off",expand=F)+ # disallows clipping of the axes
+  guides(color = F, fill = F) +
+  scale_fill_manual(values = cols)+
+  scale_color_manual(values = cols)+
+  theme_minimal()+
+  theme(legend.position = "none",
+        plot.margin = unit(c(1,1,1,4), "cm"),
+        axis.ticks.y = element_blank(),
+        axis.text.y  = element_blank())
+
+p <- statplot +
+  transition_states(states = date,transition_length = 6, state_length = 4)+
+  view_follow(fixed_y=T)+
+  ease_aes('quadratic-in-out')+
+  enter_drift(x_mod = -1) + exit_drift(x_mod = 1) +
+  labs(title = "Race to the bottom: Airline delay minutes",
+       x="Accumulated delay minutes, adjusted for number of flights",
+       y="",
+       caption='{closest_state}')
+
+animate(p,
+        nframes = length(unique(sorted5$date))*2,
+        fps=24, 
+        width=900, 
+        height=800)
+```
+
+![](animbar_preview.gif)
+
+Zoey's code: 
+```{r}
+data18 %>% 
+  
+  filter(DEP_DELAY <= 0) %>% 
+  group_by(OP_UNIQUE_CARRIER) %>% 
+  count() %>% 
+  
+  ggplot(aes(x= reorder(OP_UNIQUE_CARRIER, -n),n, y= n, fill = OP_UNIQUE_CARRIER)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "Airline", y= "Number of delays") +
+  scale_y_continuous() +
+  theme_minimal()+
+  scale_fill_manual(values = cols)
+  
+```
+
+
+# Part 5: Times & Dates
+
+### Link to [Shiny App 2](PLACEHOLDER.LINK.HERE)
