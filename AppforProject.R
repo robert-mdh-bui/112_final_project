@@ -2,15 +2,9 @@ library(shiny)
 library(tidyverse)
 library(babynames)
 library(fst)
+library(readxl)
 
-fixedflights <- read_fst("/Users/alexmarketos/Desktop/data18-fixed.fst")
-
-fixedflightsdays <- fixedflights %>%
-  separate(FL_DATE, into = c("year", "month", "day"), sep = "-") %>%
-  filter(ORIGIN_CITY_NAME == "Minneapolis, MN") %>%
-  group_by(month, day) %>%
-  summarize(avgdelay = mean(DEP_DELAY, na.rm=T)) %>%
-  ungroup()
+delaytable <- read_excel("/Users/alexmarketos/Desktop/Delay_table.xlsx")
 
 ui <- fluidPage(
   selectInput("month", "Month", choices = list(January = "1", February = "2",
@@ -35,7 +29,7 @@ ui <- fluidPage(
 
 server <- function(input, output) {
   output$Delay <- renderTable({
-    fixedflightsdays %>% 
+    delaytable %>% 
       filter(month == input$month, day == input$day) %>%
       select(avgdelay)
   })
