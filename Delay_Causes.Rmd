@@ -34,20 +34,20 @@ Delay2018 <- Flights2018 %>%
 
 ```{r}
 Flights2018 %>% 
-  summarize(Total_Delay = sum(DEP_DELAY, na.rm = TRUE))
+  summarize(Average_Delay = mean(DEP_DELAY, na.rm = TRUE))
 ```
 
 
 ```{r}
 Delay2018 %>% 
-  summarize(Delay_Delay = sum(DEP_DELAY, na.rm = TRUE))
+  summarize(Delay_Delay = mean(DEP_DELAY, na.rm = TRUE))
 ```
 
-```{r}
+```{r, echo=FALSE}
 Basics <- tibble(
   Delay = c("Delay", "Delay"),
   Type = c("Overall", "When_Delayed"),
-  Minutes = c(70748229, 93665548)
+  Minutes = c(9.969858, 38.24306)
 )
 
 Basics %>%
@@ -55,7 +55,7 @@ Basics %>%
   geom_bar(stat="identity", position = "dodge")+
   scale_fill_viridis_d()+
   theme_minimal()+
-  labs(x = "Causes of Delay", y = "Proportion of Total Deelay", title = "Cause of Delay in Minnesota versus the United States")
+  labs(x = "Overal versus when delayed", y = "Delay in Minutes", title = "Average Delay")
 
 ```
 
@@ -89,10 +89,10 @@ MNProp5<- MN_Prop_Delay2018 %>%
   head(5)
 ```
 
-```{r, include = FALSE}
+```{r, echo=FALSE}
 Delay_Cause_Proportions <- tibble(
   Delay_Cause = c("Carrier", "Carrier", "Late_Aircraft", "Late_Aircraft", "NAS", "NAS","Security","Security", "Weather", "Weather"),
-  Location = c("US", "MN","US", "MN","US", "MN","US", "MN","US", "MN"),
+  Location = c("U.S.", "MN","U.S.", "MN","U.S.", "MN","U.S.", "MN","U.S.", "MN"),
   Proportion = c(0.280696452, 0.2978381078,0.370349213,  0.2717890005,0.180063432,0.2272410889, 0.001350881, 0.0008780598,0.052455338, 0.1132118506))
 
 Delay_Cause_Proportions %>%
@@ -100,5 +100,5 @@ Delay_Cause_Proportions %>%
   geom_bar(stat="identity", position = "dodge")+
   scale_fill_viridis_d()+
   theme_minimal()+
-  labs(x = "Causes of Delay", y = "Proportion of Total Deelay", title = "Cause of Delay in Minnesota versus the United States")
+  labs(x = "Causes of Delay", y = "Proportion of Total Delay", title = "Cause of Delay in Minnesota versus the United States")
 ```
